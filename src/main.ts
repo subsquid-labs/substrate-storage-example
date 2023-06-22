@@ -6,11 +6,11 @@ import {SessionValidatorsStorage, StakingActiveEraStorage, StakingErasStakersSto
 import * as ss58 from '@subsquid/ss58'
 
 processor.run(new TypeormDatabase(), async (ctx) => {
-    let eras: Era[] = []
-    let eraValidators: EraValidator[] = []
-    let eraNominations: EraNomination[] = []
-
     for (let {header: block, items} of ctx.blocks) {
+        let eras: Era[] = []
+        let eraValidators: EraValidator[] = []
+        let eraNominations: EraNomination[] = []
+
         for (let item of items) {
             if (item.name == 'Grandpa.NewAuthorities') {
                 let eraInfo = await getActiveEraInfo(ctx, block)
@@ -62,11 +62,10 @@ processor.run(new TypeormDatabase(), async (ctx) => {
                 }
             }
         }
+        await ctx.store.insert(eras)
+        await ctx.store.insert(eraValidators)
+        await ctx.store.insert(eraNominations)
     }
-
-    await ctx.store.insert(eras)
-    await ctx.store.insert(eraValidators)
-    await ctx.store.insert(eraNominations)
 })
 
 async function getActiveEraInfo(ctx: ProcessorContext<Store>, block: SubstrateBlock) {
